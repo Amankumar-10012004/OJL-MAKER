@@ -639,30 +639,47 @@
   let pollInterval = null;
 
   function copyTemplateFormat(el) {
-    const template = `### Day 1
-**MY SPACE (My thoughts / My Sketch / My Notes / Things to Remember):** [Your notes here]
-**Tasks Carried Out Today:** [Your tasks here]
-**Key Learnings/Observations:** [Your learnings here]
-**Tools, Equipment, Technology or Techniques Used:** [Tools used here]
-**Special Achievements:** [Achievements here]
+    // Get currently calculated days count if available
+    let daysToGenerate = 2;
+    const calcEl = document.getElementById('calculated-days');
+    if (calcEl && calcEl.textContent) {
+      const match = calcEl.textContent.match(/(\d+)\s*Working Day/i);
+      if (match && parseInt(match[1]) > 0) {
+        daysToGenerate = Math.min(parseInt(match[1]), 75);
+      }
+    }
 
-### Day 2
-**MY SPACE (My thoughts / My Sketch / My Notes / Things to Remember):** [Your notes here]
-**Tasks Carried Out Today:** [Your tasks here]
-**Key Learnings/Observations:** [Your learnings here]
-**Tools, Equipment, Technology or Techniques Used:** [Tools used here]
-**Special Achievements:** [Achievements here]`;
-    
-    navigator.clipboard.writeText(template).then(() => {
+    let template = '';
+    for (let d = 1; d <= daysToGenerate; d++) {
+      template += `### Day ${d}\n` +
+`**MY SPACE (My thoughts / My Sketch / My Notes / Things to Remember):** [Your notes here]\n` +
+`**Tasks Carried Out Today:** [Your tasks here]\n` +
+`**Key Learnings/Observations:** [Your learnings here]\n` +
+`**Tools, Equipment, Technology or Techniques Used:** [Tools used here]\n` +
+`**Special Achievements:** [Achievements here]${d < daysToGenerate ? '\n\n' : ''}`;
+    }
+
+    const workDesc = document.getElementById('work-desc');
+    if (workDesc) {
+      workDesc.value = template;
+      workDesc.focus();
+    }
+
+    function showSuccess() {
       const originalText = el.innerText;
-      el.innerText = '✅ Copied!';
+      el.innerText = '✅ Copied & Inserted!';
       setTimeout(() => {
         el.innerText = originalText;
-      }, 2000);
-    }).catch(err => {
-      console.error('Failed to copy: ', err);
-      alert('Failed to copy template. Please check console.');
-    });
+      }, 2500);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(template).then(showSuccess).catch(() => {
+        showSuccess();
+      });
+    } else {
+      showSuccess();
+    }
   }
 
   function toggleCustomPageRange(radio) {
